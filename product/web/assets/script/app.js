@@ -21,15 +21,15 @@ window.addEventListener('load', function() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
         .then(function(sw) {
-            console.log('[SW] Service worker enregistré');
+            console.log('[SW] Service worker registered.');
             push_initialiseState();
             initPostMessageListener();
         }, function (e) {
-            console.error('[SW] Oups...', e);
+            console.error('[SW] Oops...', e);
 
         });
     } else {
-        console.warn('[SW] Les service workers ne sont pas encore supportés par ce navigateur.');
+        console.warn('[SW] Service workers are not supported by your browser.');
     }
 });
 
@@ -80,7 +80,7 @@ function initPostMessageListener() {
 function push_initialiseState() {
     // Are Notifications supported in the service worker?
     if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-        console.warn('[SW] Les notifications ne sont pas supportées par ce navigateur.');
+        console.warn('[SW] Push notifications are not supported in this browser.');
         return;
     }
 
@@ -95,7 +95,7 @@ function push_initialiseState() {
 
     // Check if push messaging is supported
     if (!('PushManager' in window)) {
-        console.warn('[SW] Les messages Push ne sont pas supportés par ce navigateur.');
+        console.warn('[SW] Push notifications are not supported in this browser.');
         return;
     }
 
@@ -115,7 +115,7 @@ function push_initialiseState() {
 
         })
         ['catch'](function(err) {
-            console.warn('[SW] Erreur pendant getSubscription()', err);
+            console.warn('[SW] Error occured during getSubscription()', err);
         });
     });
 }
@@ -168,10 +168,10 @@ function push_unsubscribe() {
             // the users data from your data store and
             // inform the user that you have done so
 
-            console.log('[SW] Erreur pendant le désabonnement aux notifications: ', e);
+            console.log('[SW] Error while trying to unsubscribe user from notifications. ', e);
         });
       })['catch'](function(e) {
-        console.error('[SW] Erreur pendant le désabonnement aux notifications.', e);
+        console.error('[SW] Error while trying to unsubscribe user from notifications.', e);
       });
   });
 }
@@ -185,12 +185,12 @@ function push_sendSubscriptionToServer(subscription, action) {
     req.onreadystatechange = function (e) {
         if (req.readyState == 4) {
             if(req.status != 200) {
-                console.error("[SW] Erreur :" + e.target.status);
+                console.error("[SW] Error: " + e.target.status);
             }
         }
     };
     req.onerror = function (e) {
-        console.error("[SW] Erreur :" + e.target.status);
+        console.error("[SW] Error: " + e.target.status);
     };
 
     var key = subscription.getKey('p256dh');

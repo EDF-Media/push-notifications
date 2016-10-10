@@ -1,13 +1,11 @@
 var OFFLINE_CACHE = 'offline';
-var OFFLINE_URL = 'html/offline.html';
 
 self.addEventListener('install', function (event) {
-    var offlineRequest = new Request(OFFLINE_URL);
     event.waitUntil(
-        fetch(offlineRequest).then(function (response) {
-            return caches.open(OFFLINE_CACHE).then(function (cache) {
-                return cache.put(offlineRequest, response);
-            });
+        caches.open(OFFLINE_CACHE).then(function (cache) {
+            return cache.addAll([
+                '/assets/img/shield-icon.png'
+            ]);
         })
     );
 });
@@ -19,23 +17,11 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    if (event.request.method === 'GET'
-            && event.request.headers.get('accept').includes('text/html')) {
-
-        // a GET request should not have any body (blob), but sometimes it does
-        event.request.blob().then(function(blob) {
-            if (blob.size == 0) {
-                event.respondWith(
-                    fetch(event.request).catch(function (e) {
-                        // hors ligne
-                        return caches.open(OFFLINE_CACHE).then(function (cache) {
-                            return cache.match(OFFLINE_URL);
-                        });
-                    })
-                );
-            }
-        });
-    }
+    event.respondWith(
+        caches.match(event.request).then(function(response) {
+            return response || fetch(event.request);
+        })
+    );
 });
 
 self.addEventListener('push', function (event) {
@@ -44,13 +30,12 @@ self.addEventListener('push', function (event) {
     }
 
     var sendNotification = function(message, tag) {
-        // on actualise la page des notifications ou/et le compteur de notifications
         self.refreshNotifications();
 
-        var title = "Phy'sbook",
-            icon = 'images/icons/icon-192.png';
+        var title = "Alert",
+            icon = '/assets/img/shield-icon.png';
 
-        message = message || 'Il y a du neuf !';
+        message = message || 'Default message!';
         tag = tag || 'general';
 
         return self.registration.showNotification(title, {
@@ -72,18 +57,18 @@ self.addEventListener('push', function (event) {
                     return;
                 }
 
-                return fetch('api/notifications/last?endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
+                return fetch('/api/notifications/last?endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
                     if (response.status !== 200) {
                         throw new Error();
                     }
 
                     // Examine the text in the response
                     return response.json().then(function (data) {
-                        if (data.error || !data.notification) {
+                        if (data.error || !data.body) {
                             throw new Error();
                         }
 
-                        return sendNotification(data.notification.message);
+                        return sendNotification(data.body, data.tag);
                     });
                 }).catch(function () {
                     return sendNotification();
@@ -102,11 +87,11 @@ self.refreshNotifications = function(clientList) {
         for (var i = 0; i < clientList.length; i++) {
             var client = clientList[i];
             if (client.url.search(/notifications/i) >= 0) {
-                // si la page des notifications est ouverte on la recharge
+                // if the notification page is open, refresh the page
                 client.postMessage('reload');
             }
 
-            // si on n'est pas sur la page des notifications on recharge le compteur
+            // if the page is not open, then ??? the counter
             client.postMessage('refreshNotifications');
         }
     }
@@ -121,7 +106,7 @@ self.addEventListener('notificationclick', function (event) {
             type: "window"
         })
             .then(function (clientList) {
-                // si la page des notifications est ouverte on l'affiche en priorité
+                // if the notification page is open, show the message?
                 for (var i = 0; i < clientList.length; i++) {
                     var client = clientList[i];
                     if (client.url.search(/notifications/i) >= 0 && 'focus' in client) {
@@ -129,12 +114,12 @@ self.addEventListener('notificationclick', function (event) {
                     }
                 }
 
-                // sinon s'il y a quand même une page du site ouverte on l'affiche
+                // if the notification page is not open, show the message when the page is opened
                 if (clientList.length && 'focus' in client) {
                     return client.focus();
                 }
 
-                // sinon on ouvre la page des notifications
+                // if the notification page is not opened
                 if (clients.openWindow) {
                     return clients.openWindow('notifications');
                 }
