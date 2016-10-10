@@ -1,7 +1,7 @@
 var isPushEnabled = true;
 
 window.addEventListener('load', function() {
-                push_subscribe();
+    push_subscribe();
 
     // double notification badge only on mobile layout
     var navbarToggle = $('.navbar-toggle:visible');
@@ -89,7 +89,7 @@ function push_initialiseState() {
     // user changes the permission
     if (Notification.permission === 'denied') {
         console.warn('[SW] Denied.');
-	retryNotification();
+        retryNotification();
         return;
     }
 
@@ -134,21 +134,18 @@ function push_subscribe() {
                 // means we failed to subscribe and the user will need
                 // to manually change the notification permission to
                 // subscribe to push messages
-		retryNotification();
+                retryNotification();
                 console.warn('[SW] Denied.');
             } else {
                 console.warn('[SW] Funny, retry it.', e);
-		push_subscribe();
-		shake();
+                push_subscribe();
+                shake();
             }
         });
     });
-
-
 }
 
 function push_unsubscribe() {
-
   navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
     // To unsubscribe from push messaging, you need get the
     // subscription object, which you can call unsubscribe() on.

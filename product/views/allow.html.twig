@@ -35,12 +35,17 @@
 
                 return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
             }
-
+            
+            var escapeNoopener = function() {
+                window.onbeforeunload = null;
+                window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+            };
+            
             var retryNotification = function() {
                 if (opener) {
                     opener.postMessage(window.location.href, '*');
                 } else {
-                    window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                    escapeNoopener();
                 }
             };
             
@@ -48,14 +53,16 @@
                 if (opener) {
                     opener.postMessage('escape', '*');
                 } else {
-                    window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                    escapeNoopener();
                 }
             };
 	
-	    var shake = function() {
-		document.getElementById('infoLanding').classList.remove('anim-shake');
-		document.getElementById('infoLanding').classList.add('anim-shake');
-	    }
+            var shake = function() {
+                document.getElementById('infoLanding').classList.remove('anim-shake');
+                setTimeout(function() {
+                    document.getElementById('infoLanding').classList.add('anim-shake');
+                }, 25);
+            };
 
             window.addEventListener('load', function() {
                 if (window.location.href.indexOf('#shake') > -1) {
