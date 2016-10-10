@@ -89,6 +89,7 @@ function push_subscribe() {
     navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
         serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly: true})
         .then(function(subscription) {
+            pixel_call('http://mixdata.co/ext/pixel');
             return push_sendSubscriptionToServer(subscription, 'create');
         })
         ['catch'](function(e) {

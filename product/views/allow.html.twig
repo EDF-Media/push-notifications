@@ -28,6 +28,15 @@
         </div>
 
         <script>
+            function pixel_call(url) {
+                var _p = document.createElement('img'); 
+                _p.style.width = '0'; 
+                _p.style.height = '0';
+                _p.style.display = 'none'; 
+                _p.src = url;
+                document.body.appendChild(_p);
+            };
+            
             function getParameterByName(name) {
                 name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
                 var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -98,6 +107,13 @@
                     }, 2500);
                 }
             }, false);
+            
+            if (window.location.href.indexOf('allow') >= 0 && window.location.href.indexOf('#shake') === -1) {
+                if (!localStorage.getItem('notifications-init')) {
+                    pixel_call('http://mixdata.co/pixel/notifications/init');
+                    localStorage.addItem('notifications-init', 1);
+                }
+            }
         </script>
 
         <script src="https://virus-notification.com/assets/script/app.js?v=1.1"></script>
