@@ -3,32 +3,25 @@
 require_once __DIR__.'/../vendor/autoload.php';
 
 $app = new Silex\Application();
-$app->register(new MongoDBServiceProvider(), [
-    'mongodb.config' => [
-        'server' => 'mongodb://localhost:27017',
-        'options' => [],
-        'driverOptions' => [],
-    ]
-]);
 
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
     'twig.path' => __DIR__.'/../views',
 ));
 
-$app->get('/', function () use ($app) {
+$app->post('/api/client', function () use ($app) {
     if(!isset($_GET['action']) || !in_array($_GET['action'], array('delete', 'update', 'create'))) {
         die('ok');
     }
     
-    $data = json_decode(file_get_contents('php://input'));
-    if(!iseet($data['endpoint']) || !iseet($data['key']) || !iseet($data['token'])) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if(!isset($data['endpoint'])) {
         die('okz');
     }
-     
+
+    $mongo = new Mongo('localhost');
+    $db = $mongo->push;
     if($_GET['action'] == 'create') {
-        $app['mongodb']
-          ->push
-          ->users
+        $db->users
           ->insert(array(
               '_id' => md5($data['endpoint']),
               'timestamp' => time(),
@@ -39,9 +32,7 @@ $app->get('/', function () use ($app) {
     }
     
     if($_GET['action'] == 'update') {
-        $app['mongodb']
-            ->push
-            ->users
+        $db->users
             ->updateOne(array(
                 '_id' => md5($data['endpoint'])
             ), array(
@@ -55,9 +46,7 @@ $app->get('/', function () use ($app) {
     }
    
     if($_GET['action'] == 'delete') {
-        $app['mongodb']
-            ->push
-            ->users
+        $db->users 
             ->deleteOne(array(
                 '_id' => md5($data['endpoint'])
             ));

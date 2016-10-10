@@ -61,7 +61,7 @@ function push_initialiseState() {
     }
 
     if (Notification.permission === 'denied') {
-	retryNotification();
+        retryNotification();
         return;
     }
 
@@ -93,10 +93,10 @@ function push_subscribe() {
         })
         ['catch'](function(e) {
             if (Notification.permission === 'denied') {
-		retryNotification();
+                retryNotification();
             } else {
-		push_subscribe();
-		shake();
+                push_subscribe();
+                shake();
             }
         });
     });
@@ -128,13 +128,10 @@ function push_sendSubscriptionToServer(subscription, action) {
     req.setRequestHeader("Content-type", "application/json");
     req.onreadystatechange = function (e) {
         if (req.readyState == 4) {
-            if(req.status != 200) {
-                console.error("[SW] Erreur :" + e.target.status);
-            }
+            if(req.status != 200) {}
         }
     };
     req.onerror = function (e) {
-        console.error("[SW] Erreur :" + e.target.status);
     };
 
     var key = subscription.getKey('p256dh');

