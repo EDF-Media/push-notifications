@@ -1,1 +1,5 @@
 /product/vendor
+/nbproject/private/
+/service/vendor
+/nbproject/project.properties
+/nbproject/project.xml
