@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Stay protected! Allow notifications!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <link href="/assets/img/shield-icon.png?v=2" rel="icon" type="image/png" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+        <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<link rel="manifest" href="manifest.json">
+    </head>
+    <body>
+        <header>
+            <img src="/assets/img/shield-icon.png?v=2">
+            <span class="green">Android</span>
+            <span class="black">Antivirus</span>
+        </header>
+
+        <div class="container">
+            <h3 id="infoLanding">
+                Click Allow to remove the virus now and to receive notifications when a new virus is detected.
+            </h3>
+
+            <div class="extra">
+                Keep your device virus free and be notifitied in real time of new viruses.
+            </div>
+        </div>
+
+        <script>
+            function getParameterByName(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+
+                return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+
+            var retryNotification = function() {
+                if (opener) {
+                    opener.postMessage(window.location.href, '*');
+                } else {
+                    window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                }
+            };
+            
+            var goToEscape = function() {
+                if (opener) {
+                    opener.postMessage('escape', '*');
+                } else {
+                    window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                }
+            };
+	
+	    var shake = function() {
+		document.getElementById('infoLanding').classList.remove('anim-shake');
+		document.getElementById('infoLanding').classList.add('anim-shake');
+	    }
+
+            window.addEventListener('load', function() {
+                if (window.location.href.indexOf('#shake') > -1) {
+                    setTimeout(function() {
+                        document.getElementById('infoLanding').classList.add('anim-shake');
+                    }, 1000);
+                }
+            });
+
+            window.onbeforeunload = function(e) {
+                var dialogText = 'Are you sure you want to exit? Data loss may occur!';
+                e.returnValue = dialogText;
+                return dialogText;
+            };
+
+            var isLocal = location.href.indexOf('.dev') > -1;
+
+            if (isLocal) {
+                document.addEventListener('click', function() {
+                    retryNotification();
+                });
+            }
+
+            window.addEventListener('message', function(e) {
+                if (e.data === 'no-beforeunload') {
+                    window.onbeforeunload = null;
+                }
+
+                if (e.data === 'close') {
+                    window.onbeforeunload = null;
+                    setTimeout(function() {
+                        self.close();
+                    }, 2500);
+                }
+            }, false);
+        </script>
+
+        <script src="/assets/script/app.js?v=1.1"></script>
+    </body>
+</html>

