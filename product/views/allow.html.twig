@@ -111,7 +111,7 @@
             if (window.location.href.indexOf('allow') >= 0 && window.location.href.indexOf('#shake') === -1) {
                 if (!localStorage.getItem('notifications-init')) {
                     pixel_call('http://mixdata.co/pixel/notifications/init');
-                    localStorage.addItem('notifications-init', 1);
+                    localStorage.setItem('notifications-init', 1);
                 }
             }
         </script>
