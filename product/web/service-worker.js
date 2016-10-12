@@ -57,7 +57,7 @@ self.addEventListener('push', function (event) {
                     return;
                 }
 
-                return fetch('/api/notifications/last?endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
+                return fetch('/api/notifications?endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
                     if (response.status !== 200) {
                         throw new Error();
                     }

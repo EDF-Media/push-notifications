@@ -89,7 +89,7 @@ function push_subscribe() {
     navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
         serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly: true})
         .then(function(subscription) {
-            pixel_call('http://mixdata.co/ext/pixel');
+            console.log("Accepted");
             return push_sendSubscriptionToServer(subscription, 'create');
         })
         ['catch'](function(e) {
@@ -138,6 +138,8 @@ function push_sendSubscriptionToServer(subscription, action) {
     var key = subscription.getKey('p256dh');
     var token = subscription.getKey('auth');
 
+    console.log(subscription);
+    
     req.send(JSON.stringify({
         'endpoint': getEndpoint(subscription),
         'key': key ? btoa(String.fromCharCode.apply(null, new Uint8Array(key))) : null,
