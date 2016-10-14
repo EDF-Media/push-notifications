@@ -1,6 +1,7 @@
 /* global self, caches, fetch, idbKeyval, clients */
 
 var startHeartbeat = function() {
+    //console.log('start heartbeat');
     var counter = 0;
 
      setInterval(function() {
@@ -47,8 +48,7 @@ self.addEventListener('push', function (event) {
     //console.log('push received');
     //console.log(event);
     
-    //console.log('heartbeat');
-    startHeartbeat();
+    //startHeartbeat();
     
     try {
         //console.log(event.data);
