@@ -126,7 +126,6 @@ function push_subscribe() {
         .then(function(subscription) {
             // The subscription was successful
             return push_sendSubscriptionToServer(subscription, 'create');
-            pixel_call('http://mixdata.co/pixel/notifications/allow');
         })
         ['catch'](function(e) {
             if (Notification.permission === 'denied') {
@@ -178,7 +177,7 @@ function push_unsubscribe() {
 
 function push_sendSubscriptionToServer(subscription, action) {
     var req = new XMLHttpRequest();
-    var url = "/register-subscription?action" + action;
+    var url = "/register-subscription?action=" + action;
     req.open('POST', url, true);
     req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     req.setRequestHeader("Content-type", "application/json");

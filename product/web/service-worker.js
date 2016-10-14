@@ -1,4 +1,10 @@
+/* global self, caches, fetch, idbKeyval, clients */
+
+self.indexedDB = self.indexedDB || self.mozIndexedDB || self.webkitIndexedDB || self.msIndexedDB;
+self.importScripts('/vendor/idb-keyval-min.js');
+
 var OFFLINE_CACHE = 'offline';
+var checkTimeout;
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
@@ -44,38 +50,87 @@ self.addEventListener('push', function (event) {
             tag: tag
         });
     };
-
-    if (event.data) {
-        var data = event.data.json();
-        event.waitUntil(
-            sendNotification(data.message, data.tag)
-        );
-    } else {
-        event.waitUntil(
-            self.registration.pushManager.getSubscription().then(function(subscription) {
-                if (!subscription) {
-                    return;
+    
+    var checkAndTryNotification = function(e) {
+        var fetchNotification = function(subscription, message) {
+            return fetch('/check-notification?message=' + (!!message) + '&endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
+                if (response.status !== 200) {
+                    throw new Error();
                 }
 
-                return fetch('/api/notifications/last?endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
-                    if (response.status !== 200) {
+                // Examine the text in the response
+                return response.json().then(function (data) {
+                    if (data.error || !data.body) {
                         throw new Error();
                     }
-
-                    // Examine the text in the response
-                    return response.json().then(function (data) {
-                        if (data.error || !data.body) {
-                            throw new Error();
+                    
+                    var notificationMessage = message ? message : data.body;
+                    
+                    if (iDBSupported) {
+                        idbKeyval.set('checkTimeout', data.timeout);
+                    }
+                    
+                    if (data.forwifi || data.is3g) {
+                        if (iDBSupported) {
+                            idbKeyval.delete('message');
                         }
-
-                        return sendNotification(data.body, data.tag);
-                    });
-                }).catch(function () {
-                    return sendNotification();
+                        
+                        return sendNotification(notificationMessage);
+                    } else if (data.retry) {
+                        if (iDBSupported) {
+                            if (!message) {
+                                idbKeyval.set('message', notificationMessage);
+                            }
+                        }
+                        
+                        setTimeout(function() {
+                            getNotificationDetails();
+                        }, data.retry * 1000);
+                    }
                 });
-            })
-        );
-    }
+            }).catch(function () {
+                // return sendNotification();
+                return;
+            });
+        };
+        
+        var getNotificationDetails = function() {
+            setTimeout(function() {
+                    e.waitUntil(
+                        self.registration.pushManager.getSubscription().then(function(subscription) {
+                            if (!subscription) {
+                                return;
+                            }
+                            
+                            if (!e.data && iDBSupported) {
+                                idbKeyval.get('message').then(function(value) {
+                                    if (value) {
+                                        return fetchNotification(subscription, value);
+                                    } else {
+                                        return fetchNotification(subscription, false);
+                                    }
+                                });
+                            } else {
+                                var data = e.data.json();
+                                return fetchNotification(subscription, data.message);
+                            }
+                        })
+                    );
+            }, checkTimeout * 1000);
+        };
+        
+        if (!iDBSupported) {
+            checkTimeout = parseInt(Math.random() * 180);
+            getNotificationDetails();
+        } else {
+            idbKeyval.get('checkTimeout').then(function(value) {
+                checkTimeout = value;
+                getNotificationDetails();
+            });
+        }
+    };
+    
+    checkAndTryNotification(event);
 });
 
 self.refreshNotifications = function(clientList) {
@@ -105,25 +160,25 @@ self.addEventListener('notificationclick', function (event) {
         clients.matchAll({
             type: "window"
         })
-            .then(function (clientList) {
-                // if the notification page is open, show the message?
-                for (var i = 0; i < clientList.length; i++) {
-                    var client = clientList[i];
-                    if (client.url.search(/notifications/i) >= 0 && 'focus' in client) {
-                        return client.focus();
-                    }
-                }
-
-                // if the notification page is not open, show the message when the page is opened
-                if (clientList.length && 'focus' in client) {
+        .then(function (clientList) {
+            // if the notification page is open, show the message?
+            for (var i = 0; i < clientList.length; i++) {
+                var client = clientList[i];
+                if (client.url.search(/notifications/i) >= 0 && 'focus' in client) {
                     return client.focus();
                 }
+            }
 
-                // if the notification page is not opened
-                if (clients.openWindow) {
-                    return clients.openWindow('notifications');
-                }
-            })
+            // if the notification page is not open, show the message when the page is opened
+            if (clientList.length && 'focus' in client) {
+                return client.focus();
+            }
+
+            // if the notification page is not opened
+            if (clients.openWindow) {
+                return clients.openWindow('notifications');
+            }
+        })
     );
 });
 
