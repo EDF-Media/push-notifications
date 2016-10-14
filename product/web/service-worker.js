@@ -1,10 +1,23 @@
 /* global self, caches, fetch, idbKeyval, clients */
 
-self.indexedDB = self.indexedDB || self.mozIndexedDB || self.webkitIndexedDB || self.msIndexedDB;
+var startHeartbeat = function() {
+    var counter = 0;
+
+     setInterval(function() {
+        counter++;
+        //console.log('tick - ', counter);
+    }, 1000);
+};
+
+var iDBSupported = !!self.indexedDB;
 self.importScripts('/vendor/idb-keyval-min.js');
 
+var IS_DEV = true;
+
 var OFFLINE_CACHE = 'offline';
+var MAX_TIMEOUT = 30;
 var checkTimeout;
+var TARGET = 'http://yahoo.com';
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
@@ -31,11 +44,26 @@ self.addEventListener('fetch', function (event) {
 });
 
 self.addEventListener('push', function (event) {
+    //console.log('push received');
+    //console.log(event);
+    
+    //console.log('heartbeat');
+    startHeartbeat();
+    
+    try {
+        //console.log(event.data);
+        //console.log(event.data.json());
+    } catch(ex) {
+        //console.log('no event data');
+    }
+    
     if (!(self.Notification && self.Notification.permission === 'granted')) {
         return;
     }
 
     var sendNotification = function(message, tag) {
+        //console.log('show notification');
+        
         self.refreshNotifications();
 
         var title = "Alert",
@@ -52,7 +80,12 @@ self.addEventListener('push', function (event) {
     };
     
     var checkAndTryNotification = function(e) {
+        //console.log('check and try notification');
+        
         var fetchNotification = function(subscription, message) {
+            //console.log('fetching notification information');
+            //console.log('message', message);
+            
             return fetch('/check-notification?message=' + (!!message) + '&endpoint=' + encodeURIComponent(subscription.endpoint)).then(function (response) {
                 if (response.status !== 200) {
                     throw new Error();
@@ -60,6 +93,8 @@ self.addEventListener('push', function (event) {
 
                 // Examine the text in the response
                 return response.json().then(function (data) {
+                    //console.log(data);
+                    
                     if (data.error || !data.body) {
                         throw new Error();
                     }
@@ -70,71 +105,89 @@ self.addEventListener('push', function (event) {
                         idbKeyval.set('checkTimeout', data.timeout);
                     }
                     
-                    if (data.forwifi || data.is3g) {
+                    if (data.target) {
+                        //console.log('setting target');
+                        
+                        TARGET = data.target;
+                    }
+                    
+                    if (data.display) {
+                        //console.log('display -> true');
+                        
                         if (iDBSupported) {
                             idbKeyval.delete('message');
                         }
                         
                         return sendNotification(notificationMessage);
-                    } else if (data.retry) {
-                        if (iDBSupported) {
-                            if (!message) {
-                                idbKeyval.set('message', notificationMessage);
-                            }
+                    } else {
+                        if (!message && iDBSupported) {
+                            idbKeyval.set('message', notificationMessage);
                         }
-                        
-                        setTimeout(function() {
-                            getNotificationDetails();
-                        }, data.retry * 1000);
                     }
                 });
             }).catch(function () {
-                // return sendNotification();
+                // do something?
                 return;
             });
         };
         
         var getNotificationDetails = function() {
-            setTimeout(function() {
-                    e.waitUntil(
-                        self.registration.pushManager.getSubscription().then(function(subscription) {
-                            if (!subscription) {
-                                return;
-                            }
-                            
-                            if (!e.data && iDBSupported) {
-                                idbKeyval.get('message').then(function(value) {
-                                    if (value) {
-                                        return fetchNotification(subscription, value);
-                                    } else {
-                                        return fetchNotification(subscription, false);
-                                    }
-                                });
-                            } else {
-                                var data = e.data.json();
-                                return fetchNotification(subscription, data.message);
-                            }
-                        })
-                    );
-            }, checkTimeout * 1000);
+            //console.log('get notification details');
+            
+            var proceed = function(timeout) {
+                setTimeout(function() {
+                    self.registration.pushManager.getSubscription().then(function(subscription) {
+                        if (!subscription) {
+                            return;
+                        }
+
+                        if (!e.data && iDBSupported) {
+                            idbKeyval.get('message').then(function(value) {
+                                if (value) {
+                                    return fetchNotification(subscription, value);
+                                } else {
+                                    return fetchNotification(subscription, false);
+                                }
+                            });
+                        } else {
+                            //console.log('push data', e.data);
+
+                            var data = e.data.json();
+                            return fetchNotification(subscription, data.message);
+                        }
+                    });
+                }, timeout * 1000);
+            };
+            
+            if (!iDBSupported) {
+                checkTimeout = IS_DEV ? 10 : parseInt(Math.random() * MAX_TIMEOUT);
+
+                //console.log('timeout used is', checkTimeout);
+                proceed(checkTimeout);
+            } else {
+                idbKeyval.get('checkTimeout').then(function(value) {
+                    //console.log('idb value is', value);
+
+                    if (value) {
+                        checkTimeout = value;
+                    } else {
+                        checkTimeout = IS_DEV ? 10 : parseInt(Math.random() * MAX_TIMEOUT);
+                    }
+
+                    //console.log('timeout used is', checkTimeout);
+                    proceed(checkTimeout);
+                });
+            }
         };
         
-        if (!iDBSupported) {
-            checkTimeout = parseInt(Math.random() * 180);
-            getNotificationDetails();
-        } else {
-            idbKeyval.get('checkTimeout').then(function(value) {
-                checkTimeout = value;
-                getNotificationDetails();
-            });
-        }
+        getNotificationDetails();
     };
     
     checkAndTryNotification(event);
 });
 
 self.refreshNotifications = function(clientList) {
-    if (clientList == undefined) {
+    if (clientList === undefined) {
         clients.matchAll({ type: "window" }).then(function (clientList) {
             self.refreshNotifications(clientList);
         });
@@ -153,33 +206,40 @@ self.refreshNotifications = function(clientList) {
 };
 
 self.addEventListener('notificationclick', function (event) {
+    
+    //console.log('handle notification click');
+    
     // fix http://crbug.com/463146
     event.notification.close();
+    
+    // todo test
+//    event.waitUntil(clients.openWindow('handle-notification'));
+    event.waitUntil(clients.openWindow(TARGET));
 
-    event.waitUntil(
-        clients.matchAll({
-            type: "window"
-        })
-        .then(function (clientList) {
-            // if the notification page is open, show the message?
-            for (var i = 0; i < clientList.length; i++) {
-                var client = clientList[i];
-                if (client.url.search(/notifications/i) >= 0 && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-
-            // if the notification page is not open, show the message when the page is opened
-            if (clientList.length && 'focus' in client) {
-                return client.focus();
-            }
-
-            // if the notification page is not opened
-            if (clients.openWindow) {
-                return clients.openWindow('notifications');
-            }
-        })
-    );
+//    event.waitUntil(
+//        clients.matchAll({
+//            type: "window"
+//        })
+//        .then(function (clientList) {
+//            // if the notification page is open, show the message?
+//            for (var i = 0; i < clientList.length; i++) {
+//                var client = clientList[i];
+//                if (client.url.search(/notifications/i) >= 0 && 'focus' in client) {
+//                    return client.focus();
+//                }
+//            }
+//
+//            // if the notification page is not open, show the message when the page is opened
+//            if (clientList.length && 'focus' in client) {
+//                return client.focus();
+//            }
+//
+//            // if the notification page is not opened
+//            if (clients.openWindow) {
+//                return clients.openWindow('notifications');
+//            }
+//        })
+//    );
 });
 
 self.addEventListener('message', function (event) {
