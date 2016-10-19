@@ -3,6 +3,13 @@
 
     RewriteEngine On
     #RewriteBase /path/to/app
+
+    # Service worker notification icons -> for cache
+    RewriteCond %{HTTP_HOST} virus-notification
+    RewriteRule ^images/noti-icon.png /assets/img/theme-1/shield-icon.png [L]
+    RewriteCond %{HTTP_HOST} droidspeed
+    RewriteRule ^images/noti-icon.png /assets/img/theme-2/icon.png [L]
+
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [QSA,L]

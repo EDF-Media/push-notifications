@@ -4,15 +4,15 @@
         <meta charset="UTF-8">
         <title>Scanning device!</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <link href="/assets/img/shield-icon.png?v=2" rel="icon" type="image/png" />
+        <link href="/assets/img/theme-1/shield-icon.png?v=2" rel="icon" type="image/png" />
         <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
-        <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+        <link href="/assets/css/theme-1/style.css" rel="stylesheet" type="text/css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     </head>
     <body>
         <header>
-            <img src="/assets/img/shield-icon.png?v=2">
+            <img src="/assets/img/theme-1/shield-icon.png?v=2">
             <span class="green">Android</span>
             <span class="black">Antivirus</span>
         </header>
@@ -28,10 +28,10 @@
         <div id="step-2">
             <div class="alert-container">
                 <div>
-                    <img src="/assets/img/warning.png">
+                    <img src="/assets/img/theme-1/warning.png">
                     <div class="warning-message">
                         High risk virus found on your device!
-                        <img src="/assets/img/alert.gif">
+                        <img src="/assets/img/theme-1/alert.gif">
                     </div>
                 </div>
             </div>
@@ -118,7 +118,7 @@
 
             var newWin;
             var destination = "https://play.google.com/store/apps/details?id=com.antivirus&hl=en";
-            var domain = isLocal ? 'v-notifier.dev' : 'virus-notification.com';
+            var domain = isLocal ? 'virus-notification.dev' : 'virus-notification.com';
             var maxRetryCount = isLocal ? 3 : 25;
             
             var escapeToDestination = function() {

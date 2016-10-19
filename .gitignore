@@ -1,5 +1,3 @@
 /product/vendor
+/product/web/assets/.sass-cache
 /nbproject/
-/service/vendor
-/nbproject/project.properties
-/nbproject/project.xml
