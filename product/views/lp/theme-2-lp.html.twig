@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html ng-app="app">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-touch-fullscreen" content="yes">
+        <title>Droid-Speed</title>
+        <link rel="icon" type="image/png" href="/assets/img/theme-2/icon.png" />
+        <link href="/assets/css/theme-2/style.css" rel="stylesheet" type="text/css" />
+        <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet" type="text/css">
+        <script type="text/javascript">
+            var cSpeed=7;
+            var cWidth=26;
+            var cHeight=26;
+            var cTotalFrames=12;
+            var cFrameWidth=26;
+            var cImageSrc='/assets/img/theme-2/sprites.png';
+
+            var cImageTimeout=false;
+            var cIndex=0;
+            var cXpos=0;
+            var cPreloaderTimeout=false;
+            var SECONDS_BETWEEN_FRAMES=0;
+
+            function startAnimation() {
+                document.getElementById('loaderImage').style.backgroundImage='url('+cImageSrc+')';
+                document.getElementById('loaderImage').style.width=cWidth+'px';
+                document.getElementById('loaderImage').style.height=cHeight+'px';
+
+                //FPS = Math.round(100/(maxSpeed+2-speed));
+                FPS = Math.round(100/cSpeed);
+                SECONDS_BETWEEN_FRAMES = 1 / FPS;
+
+                cPreloaderTimeout=setTimeout('continueAnimation()', SECONDS_BETWEEN_FRAMES/1000);
+            }
+
+            function continueAnimation(){
+
+                cXpos += cFrameWidth;
+                //increase the index so we know which frame of our animation we are currently on
+                cIndex += 1;
+
+                //if our cIndex is higher than our total number of frames, we're at the end and should restart
+                if (cIndex >= cTotalFrames) {
+                    cXpos =0;
+                    cIndex=0;
+                }
+
+                if(document.getElementById('loaderImage'))
+                    document.getElementById('loaderImage').style.backgroundPosition=(-cXpos)+'px 0';
+
+                cPreloaderTimeout=setTimeout('continueAnimation()', SECONDS_BETWEEN_FRAMES*1000);
+            }
+
+            function stopAnimation(){//stops animation
+                clearTimeout(cPreloaderTimeout);
+                cPreloaderTimeout=false;
+            }
+
+            function imageLoader(s, fun)//Pre-loads the sprites image
+            {
+                clearTimeout(cImageTimeout);
+                cImageTimeout=0;
+                genImage = new Image();
+                genImage.onload=function (){cImageTimeout=setTimeout(fun, 0)};
+                genImage.onerror=new Function('alert(\'Could not load the image\')');
+                genImage.src=s;
+            }
+
+            //The following code starts the animation
+            new imageLoader(cImageSrc, 'startAnimation()');
+        </script>
+        <style>
+            #wrapper {
+                min-height: 100%;
+                position: relative;
+            }
+
+            .btn-lg {
+                height: 42px;
+                line-height: 40px;
+            }
+
+            #c-a {
+                width: 1px;
+                height: 1px;
+                opacity: 0;
+                overflow: hidden;
+            }
+            #foot {
+                padding: 8px;
+                line-height: 14px;
+            }
+            #foot p{
+                text-align: center;
+                font-size: 12px;
+            }
+            #foot p a{
+                text-decoration: underline;
+                margin-left: 5px;
+                margin-top: 3px;
+                color: #888;
+            }
+            #foot p a:first-child{
+                margin-left: 0px;
+            }
+            .spinner-overlay {
+                background: #000;
+                opacity: 0.35;
+            }
+            
+            .meter > span::after, .animate > span > span {
+                border-radius: 0;
+            }
+            
+            .list-item img {
+                width: 40px;
+            }
+        </style>
+    </head>
+
+    <body class="lp ng-cloak">
+        <div class="spinner-container" style="display: none;">
+            <div class="spinner-overlay"></div>
+        </div>
+        <div id="loaderImage"></div>
+
+        <div id="wrapper" style="padding-bottom: 95px;">
+            <header style="font-size: 13px;">
+                IMPROVE YOUR MOBILE EXPERIENCE NOW!
+            </header>
+            <div class="ng-cloak step mh content--spaced" style="padding: 30px 15px;" ng-show="activeStep == 1 && !activePage">
+                <h1 class="lp-header" ng-show="!scanCompleted">Scanning!</h1>
+                <h1 class="lp-header" ng-show="scanCompleted">Initializing...</h1>
+
+                <div class="meter animate orange">
+                    <span scan-device step="2"><span></span></span>
+                </div>
+            </div>
+            <div class="ng-cloak step mh" ng-show="activeStep == 2 && !activePage">
+                <section>
+                    <div class="container">
+                        <div class="logo">
+                            <img src="/assets/img/theme-2/logo.png" style="width: 150px;"/>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <div class="media">
+                            <p class="text-center" style="line-height: 20px; font-family: Roboto; font-size: 17px; margin: 14px 0px;">
+                                Get instant access to power management functions, increase the speed of your apps and 
+                                reduce system crashes.
+                            </p>
+                            <ul class="improvements-list">
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/performance.png" />
+                                </li>
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/cleaner.png" />
+                                </li>
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/app-manager.png" />
+                                </li>
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/wi-fi.png" />
+                                </li>
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/file-manager.png" />
+                                </li>
+                                <li class="list-item">
+                                    <img src="/assets/img/theme-2/security.png" />
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mobile" style="margin:15px 0px 0px;">
+                        <img src="/assets/img/theme-2/sliding-mobile.png" />
+                    </div>
+                    
+                        <div class="large-btn text-center" style="padding: 20px; background-color: #363737; position: relative;">
+                            <a class="btn btn-lg btn-block" style="line-height:normal;color:#fff; height: auto;width: auto;display: block;background: #0cc48e;border-radius: 3px 3px 3px 3px;">
+                                <p style="line-height: 50px;font-size: 17px;">Continue</p>
+                            </a>
+                        </div>
+                </section>
+            </div>
+                
+            {#<div class="ng-cloak" id="foot" ng-show="activeStep == 2">
+                <p>Lorem ipsum dolor.</p>
+            </div>#}
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-touch.min.js"></script>
+        
+        <script>
+            angular.module('app', ['ngTouch']).run(function($rootScope) {
+                $rootScope.activeStep = 1;
+                $rootScope.activePage = false;
+
+                $rootScope.nextStep = function() {
+                    $rootScope.activeStep++;
+                };
+            }).directive('scanDevice', function($timeout) {
+                return function(scope, elem) {
+                    scope.scanCompleted = false;
+                    elem.width(0);
+                    elem.animate({ width : '100%' }, 1500, function() {
+                        $timeout(function() {
+                            scope.scanCompleted = true;
+                        }, 0);
+
+                        $timeout(function() {
+                            scope.nextStep();
+                        }, 1000);
+                    });
+                };
+            });
+            
+            var buttonSelector = $('.large-btn');
+            
+            // needs some more testing
+            var isLocal = location.href.indexOf('.dev') > -1;
+
+            if (!isLocal) {
+                window.location.hash = "stay";
+                window.location.hash = "back";
+                window.onhashchange = function() { window.location.hash = "stay"; };
+            }
+            
+            var setRetryCount = function(retryCount) {
+                localStorage.setItem('retryCount', retryCount);
+            };
+            
+            var getRetryCount = function() {
+                var value = localStorage.getItem('retryCount');
+                return parseInt(value ? value : 0);
+            };
+
+            function getParameterByName(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+
+                return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+            
+            var newWin;
+            var destination = "https://play.google.com/store/apps/details?id=laur_ryid.newrosoft.boost_saver&hl=en";
+            var domain = isLocal ? 'droidspeed.dev' : 'droidspeed.com';
+            var maxRetryCount = isLocal ? 3 : 25;
+            
+            var escapeToDestination = function() {
+                if (isLocal) {
+                    window.location.href = destination;
+                } else {
+                    window.location.replace(destination);
+                }
+                
+                if (newWin) {
+                    newWin.postMessage('close', '*');
+                }
+            };
+
+            (function() {
+                var eventUsed = false;
+                var eventType = (navigator.userAgent.indexOf('iPhone') === -1) ? 'click touchstart' : 'click';
+
+                buttonSelector.on(eventType, function(event) {
+                    if (event.type === 'touchstart') buttonSelector.off('click');
+                    if (eventUsed) return; eventUsed = true;
+                    
+                    if (getRetryCount() >= maxRetryCount) {
+                        escapeToDestination();
+                        return;
+                    }
+                    
+                    if (getRetryCount() === 0) {
+                        newWin = window.open('/allow');
+                    } else {
+                        newWin = window.open('https://v' + (getRetryCount() + 1) + '.' + domain + '/allow#shake');
+                    }
+
+                    // re-enable button after some time has passed
+                    setTimeout(function() {
+                        eventUsed = false;
+                    }, 5000);
+                });
+            })();
+            
+            window.addEventListener('message', function(e) {
+                if (e.data === 'escape') {
+                    escapeToDestination();
+                    return;
+                }
+                
+                var parts = e.data.split('.');
+                var subdomain = parts[0];
+                var receivedCount = parseInt(subdomain.replace(/(http|https):\/\/v/g, '')) || 0;
+                
+                if (receivedCount > getRetryCount()) {
+                    setRetryCount(receivedCount);
+                }
+
+                if (receivedCount < maxRetryCount) {
+                    newWin.postMessage('no-beforeunload', '*');
+
+                    setTimeout(function() {
+                        newWin.location.href = 'https://v' + (receivedCount + 1) + '.' + domain + '/allow#shake';
+                    }, 150);
+                } else {
+                    escapeToDestination();
+                }
+            }, false);
+        </script>
+    </body>
+</html>

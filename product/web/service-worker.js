@@ -24,7 +24,7 @@ self.addEventListener('install', function (event) {
     event.waitUntil(
         caches.open(OFFLINE_CACHE).then(function (cache) {
             return cache.addAll([
-                '/assets/img/shield-icon.png'
+                '/images/noti-icon.png'
             ]);
         })
     );
@@ -67,7 +67,7 @@ self.addEventListener('push', function (event) {
         self.refreshNotifications();
 
         var title = "Alert",
-            icon = '/assets/img/shield-icon.png';
+            icon = '/images/noti-icon.png';
 
         message = message || 'Default message!';
         tag = tag || 'general';
