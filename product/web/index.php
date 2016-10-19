@@ -2,6 +2,8 @@
 
 require_once __DIR__.'/../vendor/autoload.php';
 
+use Symfony\Component\HttpFoundation\Response;
+
 $app = new Silex\Application();
 $app->register(new Silex\Provider\SessionServiceProvider());
 
@@ -28,7 +30,7 @@ $app->get('/allow', function () use ($app) {
     return $app['twig']->render('allow.html.twig');
 });
 
-$app->post('/api/client', function () use ($app) {
+$app->post('/register-subscription', function () use ($app) {
     if(!isset($_GET['action']) || !in_array($_GET['action'], array('delete', 'update', 'create'))) {
         die('ok');
     }
@@ -58,8 +60,8 @@ $app->post('/api/client', function () use ($app) {
             'persistent' => true));        
         
         if(@$_COOKIE['sessionId']) {
-            file_put_contents('test','http://mixdata.co/ext/sale?sessionId='. $_COOKIE['sessionId'].PHP_EOL, FILE_APPEND);
-            getRedis()->rpush('links2', 'http://mixdata.co/ext/sale?sessionId='. $_COOKIE['sessionId']);        
+            file_put_contents('test','http://mixdata.co/ext/usale?sessionId='. $_COOKIE['sessionId'].PHP_EOL, FILE_APPEND);
+            getRedis()->rpush('links2', 'http://mixdata.co/ext/usale?sessionId='. $_COOKIE['sessionId']);        
         }
     }
     
@@ -105,5 +107,15 @@ function getRedis(){
         'port' => '6379',
         'persistent' => true)); 
 }
+
+$app->get('/check-notification', function () use ($app) {
+    return new Response(json_encode(array(
+        'body' => 'Server notification message!',
+        'target' => 'https://google.com',
+        'display' => true,
+        'timeout' => 10
+    )), 200, array('Content-Type' => 'application/json'));
+});
+
 
 $app->run();

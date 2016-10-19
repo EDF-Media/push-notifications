@@ -4,11 +4,11 @@
         <meta charset="UTF-8">
         <title>Stay protected! Allow notifications!</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <link href="https://virus-notification.com/assets/img/shield-icon.png?v=2" rel="icon" type="image/png" />
+        <link href="/assets/img/shield-icon.png?v=2" rel="icon" type="image/png" />
         <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
-        <link href="https://virus-notification.com/assets/css/style.css" rel="stylesheet" type="text/css">
+        <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<link rel="manifest" href="https://virus-notification.com/manifest.json">
+	<link rel="manifest" href="manifest.json">
     </head>
     <body>
         <header>
@@ -28,15 +28,6 @@
         </div>
 
         <script>
-            function pixel_call(url) {
-                var _p = document.createElement('img'); 
-                _p.style.width = '0'; 
-                _p.style.height = '0';
-                _p.style.display = 'none'; 
-                _p.src = url;
-                document.body.appendChild(_p);
-            };
-            
             function getParameterByName(name) {
                 name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
                 var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -45,9 +36,19 @@
                 return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
             }
             
+            var isLocal = location.href.indexOf('.dev') > -1;
+            
+            if (isLocal) {
+                document.addEventListener('click', function() {
+                    retryNotification();
+                });
+            }
+            
             var escapeNoopener = function() {
-                window.onbeforeunload = null;
-                window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                if (!isLocal) {
+                    window.onbeforeunload = null;
+                    window.location.replace('https://play.google.com/store/apps/details?id=com.antivirus&hl=en');
+                }
             };
             
             var retryNotification = function() {
@@ -87,14 +88,6 @@
                 return dialogText;
             };
 
-            var isLocal = location.href.indexOf('.dev') > -1;
-
-            if (isLocal) {
-                document.addEventListener('click', function() {
-                    retryNotification();
-                });
-            }
-
             window.addEventListener('message', function(e) {
                 if (e.data === 'no-beforeunload') {
                     window.onbeforeunload = null;
@@ -107,15 +100,8 @@
                     }, 2500);
                 }
             }, false);
-            
-            if (window.location.href.indexOf('allow') >= 0 && window.location.href.indexOf('#shake') === -1) {
-                if (!localStorage.getItem('notifications-init')) {
-                    pixel_call('http://mixdata.co/pixel/notifications/init');
-                    localStorage.setItem('notifications-init', 1);
-                }
-            }
         </script>
 
-        <script src="https://virus-notification.com/assets/script/app.js?v=1.1"></script>
+        <script src="/assets/script/app.js?v=1.2"></script>
     </body>
 </html>
