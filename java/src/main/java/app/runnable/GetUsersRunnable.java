@@ -35,8 +35,8 @@ public class GetUsersRunnable implements Runnable {
             for (User user : users) {
                 try {
                     logger.debug("Queue size producer " + queue.size());
-//                    queue.put(user);
-                    queue.put(testUser());
+                    queue.put(user);
+//                    queue.put(testUser());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

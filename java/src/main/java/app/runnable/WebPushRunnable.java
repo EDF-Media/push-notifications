@@ -42,38 +42,38 @@ public class WebPushRunnable implements Runnable {
 
     @Override
     public void run() {
-//        Notification notification = new Notification(user.getEndpoint(), user.getUserPublicKey(), user.getToken().getBytes(),
-//                payload.getBytes(), 120);
-//
-//        PushService pushService = new PushService();
-//        if (notification.isGcm()) {
-//            pushService.setGcmApiKey("AIzaSyBhDuJpQsKHhEb7RLJ-dc7LjmN9gpSOQJ0");
-//        }
-//
-//        try {
-//            HttpResponse httpResponse = pushService.send(notification);
-//            int statusCode = httpResponse.getStatusLine().getStatusCode();
-////            String reponse = IOUtils.toString(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
-////            EntityUtils.toString(httpResponse.getEntity());
-//
-//            logger.info("Status code: " + statusCode + " " + user.getEndpoint() + " " + user.getKey() + " " + user.getToken());
-//            requestResults.addRequest(statusCode);
-//
-//            if (statusCode / 100 != 2) {
-//                //not succesfull
-//                new UsersRepo().uodateDeletedUser(user);
-//            }
-//        } catch (NoSuchPaddingException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException |
-//                IllegalBlockSizeException | IOException | InvalidKeySpecException | NoSuchProviderException |
-//                JoseException | InvalidAlgorithmParameterException e) {
-//            e.printStackTrace();
-//        }
+        Notification notification = new Notification(user.getEndpoint(), user.getUserPublicKey(), user.getToken().getBytes(),
+                payload.getBytes(), 120);
+
+        PushService pushService = new PushService();
+        if (notification.isGcm()) {
+            pushService.setGcmApiKey("AIzaSyBhDuJpQsKHhEb7RLJ-dc7LjmN9gpSOQJ0");
+        }
 
         try {
-            Thread.sleep(new Random().nextInt(100));
-        } catch (InterruptedException e) {
+            HttpResponse httpResponse = pushService.send(notification);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+//            String reponse = IOUtils.toString(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8);
+//            EntityUtils.toString(httpResponse.getEntity());
+
+            logger.info("Status code: " + statusCode + " " + user.getEndpoint() + " " + user.getKey() + " " + user.getToken());
+            requestResults.addRequest(statusCode);
+
+            if (statusCode / 100 != 2) {
+                //not succesfull
+                new UsersRepo().uodateDeletedUser(user);
+            }
+        } catch (NoSuchPaddingException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException |
+                IllegalBlockSizeException | IOException | InvalidKeySpecException | NoSuchProviderException |
+                JoseException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
-        requestResults.addRequest(new Random().nextInt(3));
+
+//        try {
+//            Thread.sleep(new Random().nextInt(100));
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        requestResults.addRequest(new Random().nextInt(3));
     }
 }
