@@ -1,0 +1,9 @@
+web
+.idea
+.mvn
+gradle
+target
+statistics
+logs
+out
+script
