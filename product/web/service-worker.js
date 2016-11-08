@@ -13,7 +13,7 @@ var startHeartbeat = function() {
 var iDBSupported = !!self.indexedDB;
 self.importScripts('/vendor/idb-keyval-min.js');
 
-var IS_DEV = true;
+var IS_DEV = false;
 
 var OFFLINE_CACHE = 'offline';
 var MAX_TIMEOUT = 30;
