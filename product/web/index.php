@@ -121,8 +121,10 @@ function getRedis(){
 
 $app->get('/check-notification', function () use ($app) {
     return new Response(json_encode(array(
+        'title' => 'Custom Title',
         'body' => 'Server notification message!',
-        'target' => 'https://google.com',
+        'icon' => 'https://cdn0.iconfinder.com/data/icons/super-mono-reflection/blue/bell_blue.png',
+        'target' => 'https://wikipedia.org',
         'display' => true,
         'timeout' => 10
     )), 200, array('Content-Type' => 'application/json'));

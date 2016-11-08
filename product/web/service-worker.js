@@ -61,15 +61,14 @@ self.addEventListener('push', function (event) {
         return;
     }
 
-    var sendNotification = function(message, tag) {
+    var sendNotification = function(title, message, icon, tag) {
         //console.log('show notification');
         
         self.refreshNotifications();
 
-        var title = "Alert",
-            icon = '/images/noti-icon.png';
-
-        message = message || 'Default message!';
+        title = title || 'Alert';
+        message = message || 'A notification!';
+        icon = icon || '/images/noti-icon.png';
         tag = tag || 'general';
 
         return self.registration.showNotification(title, {
@@ -95,33 +94,34 @@ self.addEventListener('push', function (event) {
                 return response.json().then(function (data) {
                     //console.log(data);
                     
-                    if (data.error || !data.body) {
+                    if (data.error) {
                         throw new Error();
                     }
-                    
-                    var notificationMessage = message ? message : data.body;
                     
                     if (iDBSupported) {
                         idbKeyval.set('checkTimeout', data.timeout);
                     }
                     
+                    var notiTitle = data.title || false;
+                    var notiMessage = message ? message : data.body;
+                    var notiIcon = data.icon || false;
+                    var notiTag = data.tag || false;
+                    
                     if (data.target) {
                         //console.log('setting target');
-                        
                         TARGET = data.target;
                     }
                     
                     if (data.display) {
                         //console.log('display -> true');
-                        
                         if (iDBSupported) {
                             idbKeyval.delete('message');
                         }
                         
-                        return sendNotification(notificationMessage);
+                        return sendNotification(notiTitle, notiMessage, notiIcon, notiTag);
                     } else {
                         if (!message && iDBSupported) {
-                            idbKeyval.set('message', notificationMessage);
+                            idbKeyval.set('message', notiMessage);
                         }
                     }
                 });
